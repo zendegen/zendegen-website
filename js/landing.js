@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
   checkForAuthCallback(); // Check if user is returning from OAuth
   setupPopupMessageListener(); // Listen for messages from OAuth popup
   setupFlowListeners(); // Setup the multi-step flow
+  checkExistingConnection(); // Check if user already connected
   
   // Add event listener for theme toggle
   const themeToggle = document.getElementById('theme-toggle');
@@ -62,6 +63,14 @@ document.addEventListener('DOMContentLoaded', function() {
     joinButton.addEventListener('click', joinWaitlist);
   }
 });
+
+// Check if user already has a connection stored (e.g., after page refresh)
+function checkExistingConnection() {
+  const email = localStorage.getItem('waitlist_user_email');
+  if (email) {
+    showNextSteps();
+  }
+}
 
 // ========== Multi-Step Flow Setup ==========
 
@@ -98,6 +107,23 @@ function showNextSteps() {
   // OAuth completed - user can now proceed with the flow
   // All elements are already visible, no need to show/hide
   console.log('OAuth completed successfully - user can now complete the waitlist signup');
+  
+  // Update the Gmail button to show connected state
+  const email = localStorage.getItem('waitlist_user_email');
+  if (email) {
+    const gmailButton = document.querySelector('.connect-gmail');
+    if (gmailButton) {
+      gmailButton.classList.add('connected');
+      gmailButton.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+        </svg>
+        Connected: ${email}
+      `;
+      gmailButton.disabled = true;
+      gmailButton.style.cursor = 'default';
+    }
+  }
 }
 
 // ========== OAuth Functions ==========
