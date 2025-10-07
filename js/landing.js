@@ -186,46 +186,41 @@ async function connectWithGmail() {
 
 async function connectWithX() {
   try {
-    console.log('Starting X OAuth for waitlist...');
+    console.log('Starting X OAuth via Supabase...');
     signupMethod = 'x';
     localStorage.setItem('waitlist_signup_method', 'x');
     localStorage.setItem('waitlist_popup_auth', 'true');
     
-    // Generate random state for security
-    const state = Math.random().toString(36).substring(7);
-    localStorage.setItem('twitter_oauth_state', state);
+    // Use Supabase's Twitter provider
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'twitter',
+      options: {
+        redirectTo: `${window.location.origin}/oauth-callback.html`,
+        skipBrowserRedirect: true
+      }
+    });
     
-    // Construct Twitter OAuth URL
-    const clientId = 'aWw2SjBCd0JDTjhjbU1XeHBZSW86MTpjaQ';
-    const redirectUri = encodeURIComponent('https://zendegen.app/oauth-callback.html');
+    if (error) throw error;
     
-    // Simplified scope and removed duplicate client_id
-    const authUrl = `https://twitter.com/i/oauth2/authorize?` +
-      `response_type=code` +
-      `&client_id=${clientId}` +
-      `&redirect_uri=${redirectUri}` +
-      `&scope=users.read` +
-      `&state=${state}` +
-      `&code_challenge=challenge` +
-      `&code_challenge_method=S256`;
-    
-    // Open the auth URL in a centered popup
-    const width = 500;
-    const height = 600;
-    const left = Math.round((screen.width - width) / 2);
-    const top = Math.round((screen.height - height) / 2);
-    
-    const popup = window.open(
-      authUrl,
-      'twitter-oauth',
-      `width=${width},height=${height},left=${left},top=${top},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
-    );
-    
-    if (!popup) {
-      throw new Error('Popup was blocked. Please allow popups for this site.');
+    if (data?.url) {
+      // Open the auth URL in a centered popup
+      const width = 500;
+      const height = 600;
+      const left = Math.round((screen.width - width) / 2);
+      const top = Math.round((screen.height - height) / 2);
+      
+      const popup = window.open(
+        data.url,
+        'twitter-oauth',
+        `width=${width},height=${height},left=${left},top=${top},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
+      );
+      
+      if (!popup) {
+        throw new Error('Popup was blocked. Please allow popups for this site.');
+      }
+      
+      console.log('X OAuth popup opened via Supabase...');
     }
-    
-    console.log('X OAuth popup opened, waiting for callback...');
   } catch (error) {
     console.error('Failed to connect with X:', error);
     alert('Failed to connect with X. Please try Gmail instead.');
