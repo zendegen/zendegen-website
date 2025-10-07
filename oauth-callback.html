@@ -42,47 +42,56 @@
   
   <script type="module">
     // This page receives the OAuth callback and communicates with the opener
-    import { supabase } from './js/supabaseClient.js';
     
     (async function() {
       try {
         // Check if we have OAuth tokens in the URL
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        
+        console.log('OAuth callback received');
+        console.log('Has access token:', !!accessToken);
+        console.log('Has refresh token:', !!refreshToken);
         
         if (!accessToken) {
-          throw new Error('No access token found');
+          throw new Error('No access token found in URL');
         }
         
-        console.log('OAuth callback received, getting user info...');
-        
-        // Get user info from token
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error || !user) {
-          throw new Error('Failed to get user info');
-        }
-        
-        console.log('User authenticated:', user.email);
-        
-        // Sign out immediately (we don't need to keep them signed in)
-        await supabase.auth.signOut();
-        
-        // Send message to opener window
-        if (window.opener) {
-          console.log('Sending success message to opener');
-          window.opener.postMessage({ 
-            type: 'oauth-success',
-            email: user.email,
-            name: user.user_metadata?.full_name || null
-          }, window.location.origin);
+        // Decode the JWT token to get user info (no API call needed)
+        try {
+          const payload = JSON.parse(atob(accessToken.split('.')[1]));
+          console.log('Token payload:', payload);
           
-          // Close this popup
-          setTimeout(() => {
-            window.close();
-          }, 500);
-        } else {
-          throw new Error('No opener window found');
+          const email = payload.email;
+          const name = payload.user_metadata?.full_name || payload.user_metadata?.name || null;
+          
+          if (!email) {
+            throw new Error('No email found in token');
+          }
+          
+          console.log('User authenticated:', email);
+          
+          // Send message to opener window
+          if (window.opener) {
+            console.log('Sending success message to opener');
+            window.opener.postMessage({ 
+              type: 'oauth-success',
+              email: email,
+              name: name
+            }, window.location.origin);
+            
+            // Close this popup
+            setTimeout(() => {
+              window.close();
+            }, 500);
+          } else {
+            throw new Error('No opener window found');
+          }
+          
+        } catch (decodeError) {
+          console.error('Failed to decode token:', decodeError);
+          throw new Error('Failed to decode authentication token');
         }
         
       } catch (error) {
@@ -101,12 +110,13 @@
           <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
           <h2>Authentication Error</h2>
           <p>${error.message}</p>
-          <p>This window will close in 3 seconds...</p>
+          <p>Check console for details</p>
+          <p>This window will close in 5 seconds...</p>
         `;
         
         setTimeout(() => {
           window.close();
-        }, 3000);
+        }, 5000);
       }
     })();
   </script>
