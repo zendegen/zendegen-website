@@ -45,19 +45,8 @@
       filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.3));
     }
     
-    /* Media query for screens smaller than 1200px */
-    @media (max-width: 1200px) {
-      body {
-        padding-right: 15%; /* Slightly less padding on medium screens */
-      }
-      
-      .logo {
-        width: 300px;
-      }
-    }
-    
-    /* Media query for screens smaller than 900px */
-    @media (max-width: 900px) {
+    /* Switch to vertical layout when modal starts to overlap logo */
+    @media (max-width: 1400px) {
       body {
         padding: 40px 20px;
         justify-content: center;
@@ -72,8 +61,23 @@
         transform: none;
         display: flex;
         justify-content: center;
+        margin-bottom: 20px;
       }
       
+      .logo {
+        width: 300px;
+      }
+    }
+    
+    /* Adjust sizes for medium screens */
+    @media (max-width: 1200px) {      
+      .logo {
+        width: 280px;
+      }
+    }
+    
+    /* Further adjustments for mobile */
+    @media (max-width: 900px) {      
       .logo {
         width: 250px;
       }
@@ -137,10 +141,16 @@
       transition: all 0.3s ease;
     }
     
+    @media (max-width: 1400px) {
+      .waitlist-modal {
+        width: 380px;
+        padding: 35px;
+      }
+    }
+    
     @media (max-width: 1200px) {
       .waitlist-modal {
         width: 360px;
-        padding: 35px;
       }
     }
     
