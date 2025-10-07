@@ -177,14 +177,27 @@ class SupabaseTable {
 
       const options = {
         method,
-        headers
+        headers,
+        // Add timeout and other fetch options
+        mode: 'cors',
+        cache: 'no-cache'
       };
 
       if (this.query.data) {
         options.body = JSON.stringify(this.query.data);
       }
 
-      const response = await fetch(url, options);
+      // Add timeout wrapper (30 seconds)
+      const fetchWithTimeout = (url, options, timeout = 30000) => {
+        return Promise.race([
+          fetch(url, options),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timeout - Supabase took too long to respond')), timeout)
+          )
+        ]);
+      };
+
+      const response = await fetchWithTimeout(url, options);
       
       if (response.ok) {
         const data = await response.json();
