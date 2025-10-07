@@ -243,11 +243,12 @@ class SupabaseAuth {
       localStorage.setItem('supabase_oauth_state', state);
       
       // Construct Supabase OAuth URL
-      const oauthUrl = `${supabaseUrl}/auth/v1/authorize?` + 
-        `provider=${provider}` +
-        `&redirect_to=${encodeURIComponent(redirectTo)}` +
+      const oauthUrl = `${supabaseUrl}/auth/v1/callback/${provider}?` + 
+        `redirect_to=${encodeURIComponent(redirectTo)}` +
         `&state=${state}` +
-        `&auth_key=${this.client.key}`;
+        `&auth_key=${this.client.key}` +
+        `&type=web` +
+        `&prompt=select_account`;
       
       console.log('Generated OAuth URL:', oauthUrl);
       
