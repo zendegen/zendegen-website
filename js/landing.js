@@ -113,20 +113,9 @@ function showNextSteps() {
 
 async function connectWithGmail() {
   try {
-    // Check if terms are agreed to
-    const termsChecked = document.getElementById('terms').checked;
-    if (!termsChecked) {
-      alert('Please agree to the Terms of Service and Privacy Policy to continue.');
-      return;
-    }
-    
     console.log('Starting Gmail OAuth for waitlist...');
     signupMethod = 'gmail';
     localStorage.setItem('waitlist_signup_method', 'gmail');
-    
-    // Get updates preference
-    const wantsUpdates = document.getElementById('updates').checked;
-    localStorage.setItem('waitlist_wants_updates', wantsUpdates);
     
     // Mark that we're expecting a popup auth (so popup knows to communicate back)
     localStorage.setItem('waitlist_popup_auth', 'true');
