@@ -243,7 +243,7 @@ class SupabaseAuth {
       localStorage.setItem('supabase_oauth_state', state);
       
       // Ensure redirect URL matches Supabase's expected format
-      const siteUrl = 'https://www.zendegen.app';
+      const siteUrl = 'https://zendegen.app';
       const callbackPath = '/oauth-callback.html';
       
       // Construct Supabase OAuth URL
