@@ -95,18 +95,9 @@ function setupFlowListeners() {
 }
 
 function showNextSteps() {
-  // After OAuth completes, show follow buttons, checkboxes, and join button
-  const followSection = document.getElementById('follow-section');
-  const checkboxSection = document.getElementById('checkbox-section');
-  const joinButton = document.getElementById('join-waitlist-button');
-  
-  if (followSection) followSection.style.display = 'flex';
-  if (checkboxSection) checkboxSection.style.display = 'block';
-  if (joinButton) {
-    joinButton.style.display = 'block';
-    joinButton.disabled = true; // Start disabled until terms checked
-    joinButton.style.opacity = '0.5';
-  }
+  // OAuth completed - user can now proceed with the flow
+  // All elements are already visible, no need to show/hide
+  console.log('OAuth completed successfully - user can now complete the waitlist signup');
 }
 
 // ========== OAuth Functions ==========
