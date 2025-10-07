@@ -242,9 +242,14 @@ class SupabaseAuth {
       const state = Math.random().toString(36).substring(7);
       localStorage.setItem('supabase_oauth_state', state);
       
+      // Ensure redirect URL matches Supabase's expected format
+      const siteUrl = 'https://www.zendegen.app';
+      const callbackPath = '/oauth-callback.html';
+      
       // Construct Supabase OAuth URL
-      const oauthUrl = `${supabaseUrl}/auth/v1/callback/${provider}?` + 
-        `redirect_to=${encodeURIComponent(redirectTo)}` +
+      const oauthUrl = `${supabaseUrl}/auth/v1/authorize?` + 
+        `provider=${provider}` +
+        `&redirect_to=${encodeURIComponent(siteUrl + callbackPath)}` +
         `&state=${state}` +
         `&auth_key=${this.client.key}` +
         `&type=web` +
