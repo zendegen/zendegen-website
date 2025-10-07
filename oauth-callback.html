@@ -6,30 +6,48 @@
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
       margin: 0;
-      background: linear-gradient(135deg, #0c141e 0%, #1a2332 50%, #0c141e 100%);
-      color: white;
-    }
-    .auth-container {
+      padding: 20px;
       text-align: center;
-      padding: 40px;
     }
+    
+    .auth-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    
     .spinner {
       width: 40px;
       height: 40px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top: 3px solid #34C759;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
       margin: 0 auto 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #ffffff;
+      animation: spin 1s linear infinite;
     }
+    
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.7);
     }
   </style>
 </head>
@@ -40,58 +58,75 @@
     <p>This window will close automatically.</p>
   </div>
   
-  <script type="module">
-    // This page receives the OAuth callback and communicates with the opener
-    
+  <script>
     (async function() {
       try {
-        // Check if we have OAuth tokens in the URL
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
+        // Check for Twitter OAuth code
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const storedState = localStorage.getItem('twitter_oauth_state');
         
-        console.log('OAuth callback received');
-        console.log('Has access token:', !!accessToken);
-        console.log('Has refresh token:', !!refreshToken);
-        
-        if (!accessToken) {
-          throw new Error('No access token found in URL');
-        }
-        
-        // Decode the JWT token to get user info (no API call needed)
-        try {
-          const payload = JSON.parse(atob(accessToken.split('.')[1]));
-          console.log('Token payload:', payload);
+        if (code && state === storedState) {
+          console.log('Twitter OAuth callback received');
           
-          const email = payload.email;
-          const name = payload.user_metadata?.full_name || payload.user_metadata?.name || null;
-          
-          if (!email) {
-            throw new Error('No email found in token');
-          }
-          
-          console.log('User authenticated:', email);
-          
-          // Send message to opener window
-          if (window.opener) {
-            console.log('Sending success message to opener');
-            window.opener.postMessage({ 
-              type: 'oauth-success',
-              email: email,
-              name: name
-            }, window.location.origin);
+          try {
+            // Exchange code for tokens
+            const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Basic ' + btoa('aWw2SjBCd0JDTjhjbU1XeHBZSW86MTpjaQ:Y0HzJr780sK_HgJhaJcxTL_ovJlg4gGM09VXUFkwvyoNwd-ijC')
+              },
+              body: new URLSearchParams({
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': window.location.origin + '/oauth-callback.html',
+                'code_verifier': 'challenge'
+              })
+            });
             
-            // Close this popup
-            setTimeout(() => {
-              window.close();
-            }, 500);
-          } else {
-            throw new Error('No opener window found');
+            const tokens = await tokenResponse.json();
+            
+            if (!tokens.access_token) {
+              throw new Error('No access token received from Twitter');
+            }
+            
+            // Get user info
+            const userResponse = await fetch('https://api.twitter.com/2/users/me?user.fields=name,username,profile_image_url', {
+              headers: {
+                'Authorization': `Bearer ${tokens.access_token}`
+              }
+            });
+            
+            const userData = await userResponse.json();
+            
+            if (!userData.data?.username) {
+              throw new Error('Could not get Twitter username');
+            }
+            
+            // Send success message to opener
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'oauth-success',
+                email: `${userData.data.username}@twitter.com`,
+                name: userData.data.name || userData.data.username
+              }, window.location.origin);
+              
+              // Clean up and close
+              localStorage.removeItem('twitter_oauth_state');
+              setTimeout(() => window.close(), 500);
+            } else {
+              throw new Error('No opener window found');
+            }
+            
+          } catch (error) {
+            console.error('Twitter API error:', error);
+            throw new Error('Failed to get Twitter user info');
           }
           
-        } catch (decodeError) {
-          console.error('Failed to decode token:', decodeError);
-          throw new Error('Failed to decode authentication token');
+        } else {
+          throw new Error('Invalid OAuth state or missing code');
         }
         
       } catch (error) {
@@ -122,4 +157,3 @@
   </script>
 </body>
 </html>
-

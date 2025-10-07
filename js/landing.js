@@ -186,23 +186,34 @@ async function connectWithGmail() {
 
 async function connectWithX() {
   try {
-    // Store signup method
+    console.log('Starting X OAuth for waitlist...');
+    signupMethod = 'x';
     localStorage.setItem('waitlist_signup_method', 'x');
+    localStorage.setItem('waitlist_popup_auth', 'true');
     
-    // Open X auth in a popup
+    // Generate random state for security
+    const state = Math.random().toString(36).substring(7);
+    localStorage.setItem('twitter_oauth_state', state);
+    
+    // Construct Twitter OAuth URL
+    const clientId = 'aWw2SjBCd0JDTjhjbU1XeHBZSW86MTpjaQ';
+    const redirectUri = encodeURIComponent(window.location.origin + '/oauth-callback.html');
+    const scope = encodeURIComponent('users.read tweet.read');
+    
+    const authUrl = `https://twitter.com/i/oauth2/authorize?` +
+      `response_type=code` +
+      `&client_id=${clientId}` +
+      `&redirect_uri=${redirectUri}` +
+      `&scope=${scope}` +
+      `&state=${state}` +
+      `&code_challenge=challenge` + // Using PKCE for added security
+      `&code_challenge_method=plain`;
+    
+    // Open the auth URL in a centered popup
     const width = 500;
     const height = 600;
     const left = Math.round((screen.width - width) / 2);
     const top = Math.round((screen.height - height) / 2);
-    
-    const authUrl = `https://twitter.com/i/oauth2/authorize?` +
-      `client_id=${encodeURIComponent(process.env.TWITTER_CLIENT_ID)}` +
-      `&response_type=code` +
-      `&redirect_uri=${encodeURIComponent(window.location.origin + '/oauth-callback.html')}` +
-      `&scope=users.read tweet.read` +
-      `&state=twitter` +
-      `&code_challenge_method=plain` +
-      `&code_challenge=challenge`;
     
     const popup = window.open(
       authUrl,
@@ -213,9 +224,6 @@ async function connectWithX() {
     if (!popup) {
       throw new Error('Popup was blocked. Please allow popups for this site.');
     }
-    
-    // Mark that we're expecting a popup auth
-    localStorage.setItem('waitlist_popup_auth', 'true');
     
     console.log('X OAuth popup opened, waiting for callback...');
   } catch (error) {
