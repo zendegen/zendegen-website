@@ -229,6 +229,31 @@ class SupabaseAuth {
   async signOut() {
     return this.client.signOut();
   }
+
+  async signInWithOAuth({ provider, options = {} }) {
+    try {
+      console.log('Starting OAuth flow for provider:', provider);
+      
+      // Build the OAuth URL manually
+      const supabaseUrl = this.client.url;
+      const redirectTo = options.redirectTo || window.location.origin;
+      
+      // Construct Supabase OAuth URL
+      const oauthUrl = `${supabaseUrl}/auth/v1/authorize?` + 
+        `provider=${provider}` +
+        `&redirect_to=${encodeURIComponent(redirectTo)}`;
+      
+      console.log('Generated OAuth URL:', oauthUrl);
+      
+      return {
+        data: { url: oauthUrl },
+        error: null
+      };
+    } catch (error) {
+      console.error('OAuth URL generation error:', error);
+      return { data: null, error };
+    }
+  }
 }
 
 // Create and export the Supabase client
