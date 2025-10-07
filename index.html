@@ -37,6 +37,8 @@
       z-index: 1;
       pointer-events: none;
       transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
     }
     
     .logo {
@@ -49,9 +51,10 @@
     @media (max-width: 1400px) {
       body {
         padding: 40px 20px;
-        justify-content: center;
+        justify-content: flex-start; /* Align from top */
         flex-direction: column;
-        gap: 40px;
+        min-height: unset; /* Allow natural height */
+        padding-top: 60px; /* Space at top */
       }
       
       .logo-container {
@@ -59,9 +62,8 @@
         left: auto;
         top: auto;
         transform: none;
-        display: flex;
-        justify-content: center;
-        margin-bottom: 20px;
+        margin-bottom: 40px;
+        width: 100%;
       }
       
       .logo {
@@ -78,8 +80,31 @@
     
     /* Further adjustments for mobile */
     @media (max-width: 900px) {      
+      body {
+        padding-top: 40px;
+      }
+      
+      .logo-container {
+        margin-bottom: 30px;
+      }
+      
       .logo {
         width: 250px;
+      }
+    }
+    
+    /* Small mobile adjustments */
+    @media (max-width: 480px) {
+      body {
+        padding-top: 30px;
+      }
+      
+      .logo-container {
+        margin-bottom: 25px;
+      }
+      
+      .logo {
+        width: 220px;
       }
     }
     
