@@ -25,8 +25,8 @@
       align-items: center;
       justify-content: flex-end;
       padding: 20px;
-      padding-right: max(400px, 25vw); /* Responsive right padding */
-      transition: background-image 0.3s ease;
+      padding-right: 20%; /* Keep modal consistently on the right */
+      transition: all 0.3s ease;
     }
     
     .logo-container {
@@ -40,7 +40,7 @@
     }
     
     .logo {
-      width: min(350px, 30vw); /* Responsive logo size */
+      width: 350px;
       height: auto;
       filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.3));
     }
@@ -48,15 +48,21 @@
     /* Media query for screens smaller than 1200px */
     @media (max-width: 1200px) {
       body {
-        padding-right: 300px;
+        padding-right: 15%; /* Slightly less padding on medium screens */
+      }
+      
+      .logo {
+        width: 300px;
       }
     }
     
     /* Media query for screens smaller than 900px */
     @media (max-width: 900px) {
       body {
-        padding: 20px;
+        padding: 40px 20px;
         justify-content: center;
+        flex-direction: column;
+        gap: 40px;
       }
       
       .logo-container {
@@ -66,17 +72,10 @@
         transform: none;
         display: flex;
         justify-content: center;
-        margin-bottom: 40px;
       }
       
       .logo {
-        width: min(300px, 60vw);
-      }
-      
-      /* Stack logo and modal vertically */
-      body {
-        flex-direction: column;
-        justify-content: center;
+        width: 250px;
       }
     }
     
@@ -129,14 +128,28 @@
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-radius: 20px;
-      padding: min(40px, 5vw);
-      max-width: min(400px, 90vw);
-      width: 100%;
+      padding: 40px;
+      width: 400px;
       border: 1px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
       position: relative;
       z-index: 10;
       transition: all 0.3s ease;
+    }
+    
+    @media (max-width: 1200px) {
+      .waitlist-modal {
+        width: 360px;
+        padding: 35px;
+      }
+    }
+    
+    @media (max-width: 900px) {
+      .waitlist-modal {
+        width: 100%;
+        max-width: 340px;
+        padding: 30px;
+      }
     }
     
     .waitlist-modal::before {
