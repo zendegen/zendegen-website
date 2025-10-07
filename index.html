@@ -24,7 +24,8 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      padding: 20px 400px 20px 20px;
+      padding: 20px;
+      padding-right: max(400px, 25vw); /* Responsive right padding */
       transition: background-image 0.3s ease;
     }
     
@@ -35,12 +36,48 @@
       transform: translate(-50%, -50%);
       z-index: 1;
       pointer-events: none;
+      transition: all 0.3s ease;
     }
     
     .logo {
-      width: 350px;
+      width: min(350px, 30vw); /* Responsive logo size */
       height: auto;
       filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.3));
+    }
+    
+    /* Media query for screens smaller than 1200px */
+    @media (max-width: 1200px) {
+      body {
+        padding-right: 300px;
+      }
+    }
+    
+    /* Media query for screens smaller than 900px */
+    @media (max-width: 900px) {
+      body {
+        padding: 20px;
+        justify-content: center;
+      }
+      
+      .logo-container {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 40px;
+      }
+      
+      .logo {
+        width: min(300px, 60vw);
+      }
+      
+      /* Stack logo and modal vertically */
+      body {
+        flex-direction: column;
+        justify-content: center;
+      }
     }
     
     body.dark-mode {
@@ -92,13 +129,14 @@
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-radius: 20px;
-      padding: 40px;
-      max-width: 400px;
+      padding: min(40px, 5vw);
+      max-width: min(400px, 90vw);
       width: 100%;
       border: 1px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
       position: relative;
       z-index: 10;
+      transition: all 0.3s ease;
     }
     
     .waitlist-modal::before {
@@ -145,15 +183,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      padding: 15px 20px;
+      gap: min(10px, 2vw);
+      padding: min(15px, 3vw) min(20px, 4vw);
       border-radius: 12px;
-      font-size: 1rem;
+      font-size: clamp(0.875rem, 2vw, 1rem);
       font-weight: 600;
       text-decoration: none;
       transition: all 0.3s ease;
       border: 2px solid transparent;
       cursor: pointer;
+      width: 100%;
     }
     
     .connect-gmail {
