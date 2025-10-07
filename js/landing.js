@@ -162,7 +162,7 @@ function setupPopupMessageListener() {
         showSuccessMessage(email);
       } catch (error) {
         console.error('Error adding to waitlist:', error);
-        alert('Failed to join waitlist. Please try again.');
+        alert(`Failed to join waitlist: ${error.message}\n\nCheck console for details.`);
       }
     }
   });
@@ -270,13 +270,25 @@ async function addToWaitlist(email, name, source, wantsUpdates) {
       ]);
     
     if (error) {
+      console.error('Supabase error details:', error);
+      
       // Check if it's a duplicate email error
       if (error.code === '23505') {
         console.log('Email already in waitlist');
         showSuccessMessage(email, true); // true = already joined
         return;
       }
-      throw error;
+      
+      // Provide more helpful error messages
+      if (error.message.includes('relation') && error.message.includes('does not exist')) {
+        throw new Error('Waitlist table does not exist in Supabase. Please create it using the SQL in README.md');
+      }
+      
+      if (error.message.includes('permission denied') || error.message.includes('RLS')) {
+        throw new Error('Permission denied. Please check RLS policies in Supabase.');
+      }
+      
+      throw new Error(`Database error: ${error.message}`);
     }
     
     console.log('Successfully added to waitlist:', data);
