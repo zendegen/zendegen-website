@@ -167,14 +167,23 @@
     }
     
     .connect-gmail.connected {
-      background: #34C759;
-      border: 2px solid #30B350;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.9);
+      border: 2px solid #34C759;
       cursor: default;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
     
     .connect-gmail.connected:hover {
-      background: #34C759;
+      background: rgba(255, 255, 255, 0.1);
       transform: none;
+    }
+    
+    .connect-gmail.connected svg {
+      fill: #34C759;
     }
     
     .connect-x {
