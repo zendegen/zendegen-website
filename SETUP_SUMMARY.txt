@@ -1,0 +1,78 @@
+================================================================================
+                    ZEN DEGEN WEBSITE SETUP - COMPLETE! ✅
+================================================================================
+
+Your website files are ready at:
+📁 /Users/davidkrohlfing/Documents/zendegen-website/
+
+================================================================================
+                            NEXT STEPS
+================================================================================
+
+1. OPEN TERMINAL and run these commands:
+
+   cd /Users/davidkrohlfing/Documents/zendegen-website
+   open QUICK_START.md
+
+2. FOLLOW the Quick Start guide (10 minutes total):
+   ✓ Push to GitHub (2 min)
+   ✓ Deploy to Vercel (3 min)
+   ✓ Connect domain (5 min)
+   ✓ Update Supabase (1 min)
+
+3. YOUR SITE WILL BE LIVE AT:
+   🌐 https://zendegen.app
+   🌐 https://www.zendegen.app
+
+================================================================================
+                         IMPORTANT NOTES
+================================================================================
+
+📋 You MUST update Supabase redirect URLs to:
+   • https://zendegen.app/oauth-callback.html
+   • https://www.zendegen.app/oauth-callback.html
+
+🔑 Your site will work for waitlist signups just like the extension version!
+
+📊 View signups in: Supabase Dashboard → Table Editor → waitlist
+
+================================================================================
+                       AUTOMATIC DEPLOYMENTS
+================================================================================
+
+After initial setup, any changes you make:
+1. Edit files in /Users/davidkrohlfing/Documents/zendegen-website/
+2. Run: git add . && git commit -m "changes" && git push
+3. Vercel auto-deploys in 10 seconds! 🚀
+
+================================================================================
+                         FILE STRUCTURE
+================================================================================
+
+zendegen-website/
+├── index.html             ← Main landing page
+├── oauth-callback.html    ← Handles OAuth redirects
+├── js/
+│   ├── landing.js        ← Waitlist logic
+│   └── supabaseClient.js ← Database connection
+├── creative/             ← Images
+│   ├── logo.png
+│   ├── landingpagebg2.png
+│   ├── landingpagebgdark.png
+│   └── favicon.png
+└── vercel.json           ← Deployment config
+
+================================================================================
+                          HELP & DOCS
+================================================================================
+
+📖 Quick Start:  QUICK_START.md (10-minute setup)
+📖 Full Guide:   README.md (detailed instructions)
+❓ Questions:    Check README troubleshooting section
+
+================================================================================
+
+Ready to deploy? Open QUICK_START.md and let's go! 🚀
+
+================================================================================
+

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Completing sign in...</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #0c141e 0%, #1a2332 50%, #0c141e 100%);
+      color: white;
+    }
+    .auth-container {
+      text-align: center;
+      padding: 40px;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid #34C759;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="spinner"></div>
+    <h2>Completing sign in...</h2>
+    <p>This window will close automatically.</p>
+  </div>
+  
+  <script type="module">
+    // This page receives the OAuth callback and communicates with the opener
+    import { supabase } from './js/supabaseClient.js';
+    
+    (async function() {
+      try {
+        // Check if we have OAuth tokens in the URL
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        
+        if (!accessToken) {
+          throw new Error('No access token found');
+        }
+        
+        console.log('OAuth callback received, getting user info...');
+        
+        // Get user info from token
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+          throw new Error('Failed to get user info');
+        }
+        
+        console.log('User authenticated:', user.email);
+        
+        // Sign out immediately (we don't need to keep them signed in)
+        await supabase.auth.signOut();
+        
+        // Send message to opener window
+        if (window.opener) {
+          console.log('Sending success message to opener');
+          window.opener.postMessage({ 
+            type: 'oauth-success',
+            email: user.email,
+            name: user.user_metadata?.full_name || null
+          }, window.location.origin);
+          
+          // Close this popup
+          setTimeout(() => {
+            window.close();
+          }, 500);
+        } else {
+          throw new Error('No opener window found');
+        }
+        
+      } catch (error) {
+        console.error('OAuth callback error:', error);
+        
+        // Try to notify opener of error
+        if (window.opener) {
+          window.opener.postMessage({ 
+            type: 'oauth-error', 
+            error: error.message 
+          }, window.location.origin);
+        }
+        
+        // Show error and close
+        document.querySelector('.auth-container').innerHTML = `
+          <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+          <h2>Authentication Error</h2>
+          <p>${error.message}</p>
+          <p>This window will close in 3 seconds...</p>
+        `;
+        
+        setTimeout(() => {
+          window.close();
+        }, 3000);
+      }
+    })();
+  </script>
+</body>
+</html>
+
