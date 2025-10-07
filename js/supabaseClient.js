@@ -238,10 +238,16 @@ class SupabaseAuth {
       const supabaseUrl = this.client.url;
       const redirectTo = options.redirectTo || window.location.origin;
       
+      // Generate random state for CSRF protection
+      const state = Math.random().toString(36).substring(7);
+      localStorage.setItem('supabase_oauth_state', state);
+      
       // Construct Supabase OAuth URL
       const oauthUrl = `${supabaseUrl}/auth/v1/authorize?` + 
         `provider=${provider}` +
-        `&redirect_to=${encodeURIComponent(redirectTo)}`;
+        `&redirect_to=${encodeURIComponent(redirectTo)}` +
+        `&state=${state}` +
+        `&auth_key=${this.client.key}`;
       
       console.log('Generated OAuth URL:', oauthUrl);
       
