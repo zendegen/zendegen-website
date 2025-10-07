@@ -30,7 +30,7 @@
     }
     
     .logo-container {
-      position: fixed;
+      position: absolute;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
@@ -41,6 +41,7 @@
       align-items: center;
       pointer-events: none;
       background: none;
+      width: 100%;
     }
     
     .logo {
@@ -54,33 +55,51 @@
       object-fit: contain;
     }
     
+    /* Mobile Logo Container */
+    .mobile-logo-container {
+      display: none; /* Hidden by default */
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 40px;
+      z-index: 2;
+    }
+    
     /* Switch to vertical layout when modal starts to overlap logo */
     @media (max-width: 1400px) {
       body {
         padding: 40px 20px;
-        justify-content: center;
+        justify-content: flex-start;
         flex-direction: column;
         min-height: 100vh;
       }
       
+      /* Hide desktop logo */
       .logo-container {
-        position: relative;
-        left: 0;
-        top: 0;
-        transform: none;
-        margin-bottom: 40px;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 2;
+        display: none;
       }
       
-      .logo {
+      /* Show mobile logo */
+      .mobile-logo-container {
+        display: flex;
+      }
+      
+      .mobile-logo-container .logo {
         width: 300px;
-        opacity: 1;
-        pointer-events: none;
-        position: relative;
+      }
+    }
+    
+    /* Adjust logo size for smaller screens */
+    @media (max-width: 900px) {
+      .mobile-logo-container .logo {
+        width: 250px;
+      }
+    }
+    
+    /* Further reduce logo size for very small screens */
+    @media (max-width: 480px) {
+      .mobile-logo-container .logo {
+        width: 200px;
       }
     }
     
@@ -405,8 +424,13 @@
   </style>
 </head>
 <body>
-  <!-- Logo Section (centered behind modal) -->
+  <!-- Desktop Logo (centered behind modal) -->
   <div class="logo-container">
+    <img src="./creative/logo.png" alt="Zen Degen Logo" class="logo" loading="eager" decoding="sync">
+  </div>
+  
+  <!-- Mobile Logo (above modal) -->
+  <div class="mobile-logo-container">
     <img src="./creative/logo.png" alt="Zen Degen Logo" class="logo" loading="eager" decoding="sync">
   </div>
   
