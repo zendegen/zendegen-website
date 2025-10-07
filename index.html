@@ -231,6 +231,17 @@
       transform: translateY(0);
     }
     
+    .join-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .join-button:disabled:hover {
+      background-color: #34C759;
+      transform: none;
+    }
+    
     .checkbox-container {
       display: flex;
       align-items: flex-start;
@@ -292,7 +303,8 @@
     <h1 class="waitlist-title">Join the Waitlist</h1>
     <p class="waitlist-subtitle">Be the first to mindfully degen</p>
     
-    <div class="connect-buttons">
+    <!-- Step 1 & 2: Connect with Gmail or X -->
+    <div class="connect-buttons" id="connect-section">
       <button class="connect-button connect-gmail">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -311,15 +323,16 @@
       </button>
     </div>
     
-    <div class="follow-buttons">
-      <a href="#" class="follow-button">
+    <!-- Step 3 & 4: Follow X accounts (shown after connecting) -->
+    <div class="follow-buttons" id="follow-section" style="display: none;">
+      <a href="#" class="follow-button" id="follow-button-1" target="_blank">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
         </svg>
         Follow @TBD
       </a>
       
-      <a href="#" class="follow-button">
+      <a href="#" class="follow-button" id="follow-button-2" target="_blank">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
         </svg>
@@ -327,21 +340,25 @@
       </a>
     </div>
     
-    <div class="checkbox-container">
-      <input type="checkbox" id="terms" class="checkbox" required>
-      <label for="terms" class="checkbox-label">
-        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-      </label>
+    <!-- Step 5 & 6: Checkboxes (shown after connecting) -->
+    <div id="checkbox-section" style="display: none;">
+      <div class="checkbox-container">
+        <input type="checkbox" id="terms" class="checkbox">
+        <label for="terms" class="checkbox-label">
+          I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+        </label>
+      </div>
+      
+      <div class="checkbox-container">
+        <input type="checkbox" id="updates" class="checkbox">
+        <label for="updates" class="checkbox-label">
+          Send me updates about Zen Degen's launch and exclusive offers
+        </label>
+      </div>
     </div>
     
-    <div class="checkbox-container">
-      <input type="checkbox" id="updates" class="checkbox">
-      <label for="updates" class="checkbox-label">
-        Send me updates about Zen Degen's launch and exclusive offers
-      </label>
-    </div>
-    
-    <button class="join-button" id="join-waitlist-button">
+    <!-- Step 7: Join Waitlist button (shown after both checkboxes checked) -->
+    <button class="join-button" id="join-waitlist-button" style="display: none;" disabled>
       Join Waitlist
     </button>
   </div>

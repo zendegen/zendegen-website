@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadTheme();
   checkForAuthCallback(); // Check if user is returning from OAuth
   setupPopupMessageListener(); // Listen for messages from OAuth popup
+  setupFlowListeners(); // Setup the multi-step flow
   
   // Add event listener for theme toggle
   const themeToggle = document.getElementById('theme-toggle');
@@ -61,6 +62,52 @@ document.addEventListener('DOMContentLoaded', function() {
     joinButton.addEventListener('click', joinWaitlist);
   }
 });
+
+// ========== Multi-Step Flow Setup ==========
+
+function setupFlowListeners() {
+  // Listen for checkbox changes
+  const termsCheckbox = document.getElementById('terms');
+  const updatesCheckbox = document.getElementById('updates');
+  const joinButton = document.getElementById('join-waitlist-button');
+  
+  function checkCheckboxes() {
+    if (termsCheckbox && joinButton) {
+      // Enable button only if terms is checked (updates is optional)
+      if (termsCheckbox.checked) {
+        joinButton.disabled = false;
+        joinButton.style.opacity = '1';
+        joinButton.style.cursor = 'pointer';
+      } else {
+        joinButton.disabled = true;
+        joinButton.style.opacity = '0.5';
+        joinButton.style.cursor = 'not-allowed';
+      }
+    }
+  }
+  
+  if (termsCheckbox) {
+    termsCheckbox.addEventListener('change', checkCheckboxes);
+  }
+  if (updatesCheckbox) {
+    updatesCheckbox.addEventListener('change', checkCheckboxes);
+  }
+}
+
+function showNextSteps() {
+  // After OAuth completes, show follow buttons, checkboxes, and join button
+  const followSection = document.getElementById('follow-section');
+  const checkboxSection = document.getElementById('checkbox-section');
+  const joinButton = document.getElementById('join-waitlist-button');
+  
+  if (followSection) followSection.style.display = 'flex';
+  if (checkboxSection) checkboxSection.style.display = 'block';
+  if (joinButton) {
+    joinButton.style.display = 'block';
+    joinButton.disabled = true; // Start disabled until terms checked
+    joinButton.style.opacity = '0.5';
+  }
+}
 
 // ========== OAuth Functions ==========
 
@@ -146,24 +193,13 @@ function setupPopupMessageListener() {
       console.log('Received OAuth success message from popup');
       
       const { email, name } = event.data;
-      const method = localStorage.getItem('waitlist_signup_method') || 'gmail';
-      const wantsUpdates = localStorage.getItem('waitlist_wants_updates') === 'true';
       
-      try {
-        // Add to waitlist
-        await addToWaitlist(email, name, method, wantsUpdates);
-        
-        // Clean up
-        localStorage.removeItem('waitlist_signup_method');
-        localStorage.removeItem('waitlist_wants_updates');
-        localStorage.removeItem('waitlist_popup_auth');
-        
-        // Show success message
-        showSuccessMessage(email);
-      } catch (error) {
-        console.error('Error adding to waitlist:', error);
-        alert(`Failed to join waitlist: ${error.message}\n\nCheck console for details.`);
-      }
+      // Store user info for later (when they click Join Waitlist)
+      localStorage.setItem('waitlist_user_email', email);
+      localStorage.setItem('waitlist_user_name', name || '');
+      
+      // Show next steps (follow buttons, checkboxes, join button)
+      showNextSteps();
     }
   });
 }
@@ -319,10 +355,46 @@ function showSuccessMessage(email, alreadyJoined = false) {
   `;
 }
 
-// ========== Manual Waitlist (Fallback) ==========
+// ========== Join Waitlist ==========
 
-function joinWaitlist() {
-  // This is now just a fallback if they don't use OAuth
-  alert('Please connect with Gmail or X to join the waitlist.');
+async function joinWaitlist() {
+  try {
+    // Get stored user info from OAuth
+    const email = localStorage.getItem('waitlist_user_email');
+    const name = localStorage.getItem('waitlist_user_name');
+    const method = localStorage.getItem('waitlist_signup_method') || 'gmail';
+    
+    if (!email) {
+      alert('Please connect with Gmail or X first.');
+      return;
+    }
+    
+    // Check if terms are agreed to
+    const termsChecked = document.getElementById('terms').checked;
+    if (!termsChecked) {
+      alert('Please agree to the Terms of Service and Privacy Policy.');
+      return;
+    }
+    
+    // Get updates preference
+    const wantsUpdates = document.getElementById('updates').checked;
+    
+    // Add to waitlist
+    await addToWaitlist(email, name, method, wantsUpdates);
+    
+    // Clean up
+    localStorage.removeItem('waitlist_user_email');
+    localStorage.removeItem('waitlist_user_name');
+    localStorage.removeItem('waitlist_signup_method');
+    localStorage.removeItem('waitlist_wants_updates');
+    localStorage.removeItem('waitlist_popup_auth');
+    
+    // Show success message
+    showSuccessMessage(email);
+    
+  } catch (error) {
+    console.error('Error joining waitlist:', error);
+    alert(`Failed to join waitlist: ${error.message}\n\nCheck console for details.`);
+  }
 }
 
