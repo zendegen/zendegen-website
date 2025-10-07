@@ -184,8 +184,44 @@ async function connectWithGmail() {
   }
 }
 
-function connectWithX() {
-  alert('Twitter/X integration coming soon! For now, please use Gmail.');
+async function connectWithX() {
+  try {
+    // Store signup method
+    localStorage.setItem('waitlist_signup_method', 'x');
+    
+    // Open X auth in a popup
+    const width = 500;
+    const height = 600;
+    const left = Math.round((screen.width - width) / 2);
+    const top = Math.round((screen.height - height) / 2);
+    
+    const authUrl = `https://twitter.com/i/oauth2/authorize?` +
+      `client_id=${encodeURIComponent(process.env.TWITTER_CLIENT_ID)}` +
+      `&response_type=code` +
+      `&redirect_uri=${encodeURIComponent(window.location.origin + '/oauth-callback.html')}` +
+      `&scope=users.read tweet.read` +
+      `&state=twitter` +
+      `&code_challenge_method=plain` +
+      `&code_challenge=challenge`;
+    
+    const popup = window.open(
+      authUrl,
+      'twitter-oauth',
+      `width=${width},height=${height},left=${left},top=${top},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
+    );
+    
+    if (!popup) {
+      throw new Error('Popup was blocked. Please allow popups for this site.');
+    }
+    
+    // Mark that we're expecting a popup auth
+    localStorage.setItem('waitlist_popup_auth', 'true');
+    
+    console.log('X OAuth popup opened, waiting for callback...');
+  } catch (error) {
+    console.error('Failed to connect with X:', error);
+    alert('Failed to connect with X. Please try Gmail instead.');
+  }
 }
 
 // ========== Popup Message Listener ==========
