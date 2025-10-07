@@ -198,17 +198,16 @@ async function connectWithX() {
     // Construct Twitter OAuth URL
     const clientId = 'aWw2SjBCd0JDTjhjbU1XeHBZSW86MTpjaQ';
     const redirectUri = encodeURIComponent('https://zendegen.app/oauth-callback.html');
-    const scope = encodeURIComponent('tweet.read users.read');
     
+    // Simplified scope and removed duplicate client_id
     const authUrl = `https://twitter.com/i/oauth2/authorize?` +
       `response_type=code` +
       `&client_id=${clientId}` +
       `&redirect_uri=${redirectUri}` +
-      `&scope=${scope}` +
+      `&scope=users.read` +
       `&state=${state}` +
       `&code_challenge=challenge` +
-      `&code_challenge_method=plain` +
-      `&client_id=${clientId}`;
+      `&code_challenge_method=S256`;
     
     // Open the auth URL in a centered popup
     const width = 500;
