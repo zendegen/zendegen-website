@@ -81,7 +81,7 @@
               body: new URLSearchParams({
                 'grant_type': 'authorization_code',
                 'code': code,
-                'redirect_uri': window.location.origin + '/oauth-callback.html',
+                'redirect_uri': 'https://zendegen.app/oauth-callback.html',
                 'code_verifier': 'challenge'
               })
             });

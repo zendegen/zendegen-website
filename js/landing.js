@@ -197,8 +197,8 @@ async function connectWithX() {
     
     // Construct Twitter OAuth URL
     const clientId = 'aWw2SjBCd0JDTjhjbU1XeHBZSW86MTpjaQ';
-    const redirectUri = encodeURIComponent(window.location.origin + '/oauth-callback.html');
-    const scope = encodeURIComponent('users.read tweet.read');
+    const redirectUri = encodeURIComponent('https://zendegen.app/oauth-callback.html');
+    const scope = encodeURIComponent('tweet.read users.read');
     
     const authUrl = `https://twitter.com/i/oauth2/authorize?` +
       `response_type=code` +
@@ -206,8 +206,9 @@ async function connectWithX() {
       `&redirect_uri=${redirectUri}` +
       `&scope=${scope}` +
       `&state=${state}` +
-      `&code_challenge=challenge` + // Using PKCE for added security
-      `&code_challenge_method=plain`;
+      `&code_challenge=challenge` +
+      `&code_challenge_method=plain` +
+      `&client_id=${clientId}`;
     
     // Open the auth URL in a centered popup
     const width = 500;
