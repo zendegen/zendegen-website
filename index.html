@@ -35,39 +35,45 @@
       top: 50%;
       transform: translate(-50%, -50%);
       z-index: 1;
-      pointer-events: none;
       transition: all 0.3s ease;
       display: flex;
       justify-content: center;
+      align-items: center;
+      pointer-events: none;
     }
     
     .logo {
       width: 350px;
       height: auto;
       filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.3));
+      opacity: 1;
+      pointer-events: none;
+      max-width: 100%;
     }
     
     /* Switch to vertical layout when modal starts to overlap logo */
     @media (max-width: 1400px) {
       body {
         padding: 40px 20px;
-        justify-content: flex-start; /* Align from top */
+        justify-content: center;
         flex-direction: column;
-        min-height: unset; /* Allow natural height */
-        padding-top: 60px; /* Space at top */
+        min-height: 100vh;
       }
       
       .logo-container {
-        position: relative;
-        left: auto;
-        top: auto;
+        position: static;
         transform: none;
         margin-bottom: 40px;
         width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
       
       .logo {
         width: 300px;
+        opacity: 1;
+        pointer-events: none;
       }
     }
     
@@ -80,10 +86,6 @@
     
     /* Further adjustments for mobile */
     @media (max-width: 900px) {      
-      body {
-        padding-top: 40px;
-      }
-      
       .logo-container {
         margin-bottom: 30px;
       }
@@ -94,11 +96,7 @@
     }
     
     /* Small mobile adjustments */
-    @media (max-width: 480px) {
-      body {
-        padding-top: 30px;
-      }
-      
+    @media (max-width: 480px) {      
       .logo-container {
         margin-bottom: 25px;
       }
