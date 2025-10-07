@@ -40,6 +40,7 @@
       justify-content: center;
       align-items: center;
       pointer-events: none;
+      background: none;
     }
     
     .logo {
@@ -49,6 +50,8 @@
       opacity: 1;
       pointer-events: none;
       max-width: 100%;
+      display: block;
+      object-fit: contain;
     }
     
     /* Switch to vertical layout when modal starts to overlap logo */
@@ -61,19 +64,23 @@
       }
       
       .logo-container {
-        position: static;
+        position: relative;
+        left: 0;
+        top: 0;
         transform: none;
         margin-bottom: 40px;
         width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
+        z-index: 2;
       }
       
       .logo {
         width: 300px;
         opacity: 1;
         pointer-events: none;
+        position: relative;
       }
     }
     
@@ -400,7 +407,7 @@
 <body>
   <!-- Logo Section (centered behind modal) -->
   <div class="logo-container">
-    <img src="./creative/logo.png" alt="Zen Degen Logo" class="logo">
+    <img src="./creative/logo.png" alt="Zen Degen Logo" class="logo" loading="eager" decoding="sync">
   </div>
   
   <!-- Waitlist Modal (right side) -->
