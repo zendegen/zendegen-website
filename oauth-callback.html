@@ -64,6 +64,8 @@
       try {
         console.log('OAuth callback starting...');
         console.log('URL:', window.location.href);
+        console.log('Hash:', window.location.hash);
+        console.log('Search:', window.location.search);
 
         // Initialize Supabase client
         const supabase = window.supabase.createClient(
@@ -74,47 +76,76 @@
               autoRefreshToken: true,
               persistSession: true,
               detectSessionInUrl: true,
-              flowType: 'pkce'
+              flowType: 'pkce',
+              storage: window.localStorage,
+              storageKey: 'supabase.auth.token'
             }
           }
         );
 
-        // Check state parameter
+        // Check for code in URL
         const urlParams = new URLSearchParams(window.location.search);
-        const state = urlParams.get('state');
-        const storedState = localStorage.getItem('oauth_state');
-        
-        console.log('State check:', { state, storedState });
-        
-        if (state !== storedState) {
-          throw new Error('Invalid OAuth state');
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+
+        if (error || errorDescription) {
+          throw new Error(errorDescription || error || 'OAuth error');
         }
+
+        if (!code) {
+          throw new Error('No authorization code found in URL');
+        }
+
+        console.log('Authorization code found:', code);
 
         // Exchange code for session
         console.log('Exchanging code for session...');
-        const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+        const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
 
-        if (error) {
-          throw error;
+        if (sessionError) {
+          console.error('Session exchange error:', sessionError);
+          throw sessionError;
         }
 
         if (!data?.session) {
           throw new Error('No session returned from code exchange');
         }
 
-        console.log('Session obtained successfully');
-        console.log('User:', data.session.user.email);
+        console.log('Session obtained:', {
+          user: data.session.user.email,
+          expires: new Date(data.session.expires_at).toISOString()
+        });
+
+        // Get user info to verify session
+        console.log('Verifying session...');
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError) {
+          throw userError;
+        }
+
+        if (!user) {
+          throw new Error('No user found after session exchange');
+        }
+
+        console.log('User verified:', {
+          id: user.id,
+          email: user.email,
+          metadata: user.user_metadata
+        });
 
         // Send success message to opener
         if (window.opener) {
+          console.log('Sending success message to opener');
           window.opener.postMessage({
             type: 'oauth-success',
-            email: data.session.user.email,
-            name: data.session.user.user_metadata?.full_name || data.session.user.email
+            email: user.email,
+            name: user.user_metadata?.full_name || user.email
           }, window.location.origin);
           
           // Clean up and close
-          localStorage.removeItem('oauth_state');
+          console.log('Closing popup...');
           setTimeout(() => window.close(), 500);
         } else {
           throw new Error('No opener window found');
