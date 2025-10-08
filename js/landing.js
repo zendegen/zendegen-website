@@ -150,38 +150,17 @@ async function connectWithGmail() {
     const state = Math.random().toString(36).substring(7);
     localStorage.setItem('oauth_state', state);
 
-    // Let Supabase handle the redirect
+    // Use implicit flow - let Supabase handle everything
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: 'https://zendegen.app/oauth-callback.html',
-        skipBrowserRedirect: true, // We'll handle the redirect manually
         queryParams: {
           access_type: 'offline',
           prompt: 'select_account'
         }
       }
     });
-
-    if (data?.url) {
-      // Open OAuth in a centered popup window
-      const width = 500;
-      const height = 600;
-      const left = Math.round((screen.width - width) / 2);
-      const top = Math.round((screen.height - height) / 2);
-      
-      console.log('Opening popup with URL:', data.url);
-      
-      const popup = window.open(
-        data.url,
-        'google-oauth-waitlist',
-        `width=${width},height=${height},left=${left},top=${top},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
-      );
-      
-      if (!popup) {
-        throw new Error('Popup was blocked. Please allow popups for this site.');
-      }
-    }
     
     console.log('Supabase OAuth response:', { data, error });
     
