@@ -1,6 +1,7 @@
 // Supabase configuration
-const supabaseUrl = 'https://wouziwxgidiuygrxxago.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvdXppd3hnaWRpdXlncnh4YWdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MzQzNDAsImV4cCI6MjA3NTExMDM0MH0.esqjsJPZ79s7E9TzAyd8tPlx8fjFtwEgsHZdBataodI';
+// Waitlist-specific Supabase project
+const supabaseUrl = 'https://qedzitbrwwrxatmpfsvy.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZHppdGJyd3dyeGF0bXBmc3Z5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4ODIyMjEsImV4cCI6MjA3NTQ1ODIyMX0.TSERAKByXVw-up-BXifO6ukMWtJclInoS3LgRm5ZeD8';
 
 // Create and export the Supabase client
 export const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
