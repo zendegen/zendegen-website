@@ -370,6 +370,7 @@ async function addToWaitlist(email, name, source, wantsUpdates) {
     console.log('Adding to waitlist:', { email, name, source, wantsUpdates });
     
     // Add timeout to the insert
+    // Don't use .select() to avoid needing SELECT policy
     const insertPromise = supabase
       .from('waitlist')
       .insert([
@@ -379,8 +380,7 @@ async function addToWaitlist(email, name, source, wantsUpdates) {
           source: source,
           wants_updates: wantsUpdates
         }
-      ])
-      .select();
+      ]);
     
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Insert timeout after 10 seconds')), 10000)
