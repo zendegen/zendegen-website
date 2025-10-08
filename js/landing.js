@@ -232,11 +232,14 @@ async function connectWithGmail() {
 async function connectWithX() {
   try {
     console.log('Starting X OAuth via Supabase...');
+    console.log('Supabase URL:', supabase.supabaseUrl);
+    console.log('Window origin:', window.location.origin);
     
     signupMethod = 'x';
     localStorage.setItem('waitlist_signup_method', 'x');
     
     // Let Supabase handle everything - it will redirect the current tab
+    console.log('Calling signInWithOAuth with provider: twitter');
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
@@ -245,8 +248,13 @@ async function connectWithX() {
       }
     });
     
+    console.log('OAuth response:', { data, error });
+    
     if (error) {
       console.error('Supabase OAuth error:', error);
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error status:', error.status);
       throw error;
     }
   } catch (error) {
