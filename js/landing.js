@@ -243,8 +243,7 @@ async function connectWithX() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
-        redirectTo: 'https://zendegen.app', // Use non-www URL consistently
-        scopes: 'users.read'
+        redirectTo: 'https://zendegen.app' // Use non-www URL consistently
       }
     });
     
