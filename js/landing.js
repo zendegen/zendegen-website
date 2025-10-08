@@ -30,10 +30,35 @@ function loadTheme() {
   document.addEventListener('DOMContentLoaded', async function() {
     loadTheme();
     
-    // Clear any existing sessions
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error clearing session:', error);
+    // Check if we're returning from OAuth
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const hasAuthTokens = hashParams.has('access_token') || hashParams.has('code');
+    
+    if (hasAuthTokens) {
+      console.log('Detected OAuth redirect, processing session...');
+      
+      // Wait a moment for Supabase to process the session
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Get the session
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        console.log('Session obtained:', session.user.email);
+        
+        // Store user info
+        localStorage.setItem('waitlist_user_email', session.user.email);
+        localStorage.setItem('waitlist_user_name', session.user.user_metadata?.full_name || session.user.email);
+        
+        // Clear the hash from URL
+        window.history.replaceState(null, '', window.location.pathname);
+        
+        // Show next steps
+        showNextSteps();
+      } else if (error) {
+        console.error('Session error:', error);
+        alert('Authentication failed. Please try again.');
+      }
     }
     
     checkForAuthCallback(); // Check if user is returning from OAuth
@@ -150,11 +175,11 @@ async function connectWithGmail() {
     const state = Math.random().toString(36).substring(7);
     localStorage.setItem('oauth_state', state);
 
-    // Use implicit flow - let Supabase handle everything
+    // Let Supabase handle everything - it will redirect the current tab
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://zendegen.app/oauth-callback.html',
+        redirectTo: window.location.origin, // Redirect back to the main page
         queryParams: {
           access_type: 'offline',
           prompt: 'select_account'
