@@ -228,58 +228,26 @@ async function connectWithGmail() {
 async function connectWithX() {
   try {
     console.log('Starting X OAuth via Supabase...');
-    console.log('Current origin:', window.location.origin);
     
     signupMethod = 'x';
     localStorage.setItem('waitlist_signup_method', 'x');
-    localStorage.setItem('waitlist_popup_auth', 'true');
     
-    // Use Supabase's Twitter provider
-    console.log('Calling Supabase signInWithOAuth...');
+    // Let Supabase handle everything - it will redirect the current tab
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
-        redirectTo: 'https://qedzitbrwwrxatmpfsvy.supabase.co/auth/v1/callback',
-        skipBrowserRedirect: true,
+        redirectTo: window.location.origin, // Redirect back to the main page
         scopes: 'users.read'
       }
     });
-    
-    console.log('Supabase OAuth response:', { data, error });
     
     if (error) {
       console.error('Supabase OAuth error:', error);
       throw error;
     }
-    
-    if (!data?.url) {
-      console.error('No OAuth URL received from Supabase');
-      throw new Error('No OAuth URL received from Supabase');
-    }
-    
-    console.log('Received OAuth URL:', data.url);
-    
-    // Open the auth URL in a centered popup
-    const width = 500;
-    const height = 600;
-    const left = Math.round((screen.width - width) / 2);
-    const top = Math.round((screen.height - height) / 2);
-    
-    const popup = window.open(
-      data.url,
-      'twitter-oauth',
-      `width=${width},height=${height},left=${left},top=${top},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
-    );
-    
-    if (!popup) {
-      console.error('Popup was blocked');
-      throw new Error('Popup was blocked. Please allow popups for this site.');
-    }
-    
-    console.log('X OAuth popup opened via Supabase...');
   } catch (error) {
     console.error('Failed to connect with X:', error);
-    alert(`Failed to connect with X: ${error.message}\n\nPlease check console for details.`);
+    alert(`Failed to connect with X: ${error.message}`);
   }
 }
 
