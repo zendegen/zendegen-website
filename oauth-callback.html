@@ -64,6 +64,8 @@
       try {
         console.log('OAuth callback starting...');
         console.log('URL:', window.location.href);
+        console.log('Search params:', new URLSearchParams(window.location.search).toString());
+        console.log('Hash:', window.location.hash);
 
         // Check if we need to redirect to non-www
         if (window.location.hostname.startsWith('www.')) {
@@ -74,6 +76,7 @@
         }
 
         // Initialize Supabase client
+        console.log('Initializing Supabase client...');
         const supabase = window.supabase.createClient(
           'https://qedzitbrwwrxatmpfsvy.supabase.co',
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZHppdGJyd3dyeGF0bXBmc3Z5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4ODIyMjEsImV4cCI6MjA3NTQ1ODIyMX0.TSERAKByXVw-up-BXifO6ukMWtJclInoS3LgRm5ZeD8',
@@ -82,24 +85,41 @@
               autoRefreshToken: true,
               persistSession: true,
               detectSessionInUrl: true,
-              flowType: 'pkce'
+              flowType: 'pkce',
+              storage: window.localStorage,
+              storageKey: 'supabase.auth.token'
             }
           }
         );
 
+        // Listen for auth state changes
+        supabase.auth.onAuthStateChange((event, session) => {
+          console.log('Auth state changed:', { event, email: session?.user?.email });
+        });
+
         // Get code from URL
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
         
+        console.log('URL parameters:', { code, error, errorDescription });
+
+        if (error || errorDescription) {
+          throw new Error(errorDescription || error || 'OAuth error');
+        }
+
         if (!code) {
           throw new Error('No authorization code found');
         }
 
+        // Try to exchange code for session
         console.log('Exchanging code for session...');
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(window.location.href);
+        console.log('Session exchange result:', { data, error: sessionError });
 
-        if (error) {
-          throw error;
+        if (sessionError) {
+          throw sessionError;
         }
 
         if (!data?.session?.user) {
@@ -113,6 +133,7 @@
 
         // Send success message to opener
         if (window.opener) {
+          console.log('Sending success message to opener...');
           window.opener.postMessage({
             type: 'oauth-success',
             email: data.session.user.email,
@@ -120,6 +141,7 @@
           }, 'https://zendegen.app');
           
           // Close popup after a brief delay
+          console.log('Closing popup...');
           setTimeout(() => window.close(), 500);
         } else {
           throw new Error('No opener window found');
