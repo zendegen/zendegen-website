@@ -63,17 +63,7 @@
     (async function() {
       try {
         console.log('OAuth callback starting...');
-        console.log('URL:', window.location.href);
-        console.log('Search params:', new URLSearchParams(window.location.search).toString());
-        console.log('Hash:', window.location.hash);
-
-        // Check if we need to redirect to non-www
-        if (window.location.hostname.startsWith('www.')) {
-          const nonWwwUrl = window.location.href.replace('www.', '');
-          console.log('Redirecting to non-www URL:', nonWwwUrl);
-          window.location.replace(nonWwwUrl);
-          return;
-        }
+        console.log('Full URL:', window.location.href);
 
         // Initialize Supabase client
         console.log('Initializing Supabase client...');
@@ -83,19 +73,12 @@
           {
             auth: {
               autoRefreshToken: true,
-              persistSession: true,
+              persistSession: false, // Don't persist session in this popup
               detectSessionInUrl: true,
-              flowType: 'pkce',
-              storage: window.localStorage,
-              storageKey: 'supabase.auth.token'
+              flowType: 'pkce'
             }
           }
         );
-
-        // Listen for auth state changes
-        supabase.auth.onAuthStateChange((event, session) => {
-          console.log('Auth state changed:', { event, email: session?.user?.email });
-        });
 
         // Get code from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -103,22 +86,22 @@
         const error = urlParams.get('error');
         const errorDescription = urlParams.get('error_description');
         
-        console.log('URL parameters:', { code, error, errorDescription });
+        console.log('URL parameters:', { code: code ? 'present' : 'missing', error, errorDescription });
 
         if (error || errorDescription) {
           throw new Error(errorDescription || error || 'OAuth error');
         }
 
         if (!code) {
-          throw new Error('No authorization code found');
+          throw new Error('No authorization code found in URL');
         }
 
-        // Try to exchange code for session
+        // Exchange code for session
         console.log('Exchanging code for session...');
         const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(window.location.href);
-        console.log('Session exchange result:', { data, error: sessionError });
 
         if (sessionError) {
+          console.error('Session exchange error:', sessionError);
           throw sessionError;
         }
 
@@ -126,36 +109,48 @@
           throw new Error('No user found in session');
         }
 
-        console.log('Session obtained:', {
-          email: data.session.user.email,
-          expires: new Date(data.session.expires_at).toISOString()
-        });
+        console.log('Session obtained successfully');
+        console.log('User email:', data.session.user.email);
+
+        // Determine correct origin for message
+        const targetOrigin = window.location.hostname.includes('www.') 
+          ? 'https://www.zendegen.app' 
+          : 'https://zendegen.app';
 
         // Send success message to opener
-        if (window.opener) {
-          console.log('Sending success message to opener...');
+        if (window.opener && !window.opener.closed) {
+          console.log('Sending success message to:', targetOrigin);
           window.opener.postMessage({
             type: 'oauth-success',
             email: data.session.user.email,
             name: data.session.user.user_metadata?.full_name || data.session.user.email
-          }, 'https://zendegen.app');
+          }, targetOrigin);
           
           // Close popup after a brief delay
-          console.log('Closing popup...');
-          setTimeout(() => window.close(), 500);
+          console.log('Closing popup in 500ms...');
+          setTimeout(() => {
+            console.log('Closing now...');
+            window.close();
+          }, 500);
         } else {
+          console.error('No valid opener window found');
           throw new Error('No opener window found');
         }
         
       } catch (error) {
         console.error('OAuth callback error:', error);
         
+        // Determine correct origin for message
+        const targetOrigin = window.location.hostname.includes('www.') 
+          ? 'https://www.zendegen.app' 
+          : 'https://zendegen.app';
+        
         // Try to notify opener of error
-        if (window.opener) {
+        if (window.opener && !window.opener.closed) {
           window.opener.postMessage({ 
             type: 'oauth-error', 
             error: error.message 
-          }, 'https://zendegen.app');
+          }, targetOrigin);
         }
         
         // Show error and close
