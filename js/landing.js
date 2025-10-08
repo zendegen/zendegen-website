@@ -50,6 +50,10 @@ function loadTheme() {
         localStorage.setItem('waitlist_user_email', session.user.email);
         localStorage.setItem('waitlist_user_name', session.user.user_metadata?.full_name || session.user.email);
         
+        // Sign out immediately - we only needed the email
+        await supabase.auth.signOut();
+        console.log('Signed out after storing user info');
+        
         // Clear the hash from URL
         window.history.replaceState(null, '', window.location.pathname);
         
