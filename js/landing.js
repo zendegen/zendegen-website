@@ -149,7 +149,7 @@ async function connectWithGmail() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/oauth-callback.html`,
+        redirectTo: 'https://qedzitbrwwrxatmpfsvy.supabase.co/auth/v1/callback',
         skipBrowserRedirect: true,
         queryParams: {
           access_type: 'offline',
@@ -210,7 +210,7 @@ async function connectWithX() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
-        redirectTo: `${window.location.origin}/oauth-callback.html`,
+        redirectTo: 'https://qedzitbrwwrxatmpfsvy.supabase.co/auth/v1/callback',
         skipBrowserRedirect: true,
         scopes: 'users.read'
       }

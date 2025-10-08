@@ -8,6 +8,26 @@ export const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKe
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    flowType: 'pkce'
+  }
+});
+
+// Listen for auth state changes
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', event, session?.user?.email);
+  
+  if (event === 'SIGNED_IN' && session?.user) {
+    // Send success message to opener if we're in a popup
+    if (window.opener) {
+      window.opener.postMessage({
+        type: 'oauth-success',
+        email: session.user.email,
+        name: session.user.user_metadata?.full_name || session.user.email
+      }, 'https://zendegen.app');
+      
+      // Close popup after a brief delay
+      setTimeout(() => window.close(), 500);
+    }
   }
 });
