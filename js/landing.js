@@ -26,13 +26,20 @@ function loadTheme() {
   }
 }
 
-// Initialize theme on page load
-document.addEventListener('DOMContentLoaded', function() {
-  loadTheme();
-  checkForAuthCallback(); // Check if user is returning from OAuth
-  setupPopupMessageListener(); // Listen for messages from OAuth popup
-  setupFlowListeners(); // Setup the multi-step flow
-  checkExistingConnection(); // Check if user already connected
+  // Initialize theme on page load
+  document.addEventListener('DOMContentLoaded', async function() {
+    loadTheme();
+    
+    // Clear any existing sessions
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error clearing session:', error);
+    }
+    
+    checkForAuthCallback(); // Check if user is returning from OAuth
+    setupPopupMessageListener(); // Listen for messages from OAuth popup
+    setupFlowListeners(); // Setup the multi-step flow
+    checkExistingConnection(); // Check if user already connected
   
   // Add event listener for theme toggle
   const themeToggle = document.getElementById('theme-toggle');
