@@ -378,10 +378,16 @@ async function addToWaitlist(email, name, source, wantsUpdates) {
           source: source,
           wants_updates: wantsUpdates
         }
-      ]);
+      ])
+      .select(); // Add select to return the inserted data
+    
+    console.log('Insert result:', { data, error });
     
     if (error) {
       console.error('Supabase error details:', error);
+      console.error('Error code:', error.code);
+      console.error('Error hint:', error.hint);
+      console.error('Error details:', error.details);
       
       // Check if it's a duplicate email error
       if (error.code === '23505') {
