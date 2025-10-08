@@ -64,8 +64,6 @@
       try {
         console.log('OAuth callback starting...');
         console.log('URL:', window.location.href);
-        console.log('Hash:', window.location.hash);
-        console.log('Search:', window.location.search);
 
         // Initialize Supabase client
         const supabase = window.supabase.createClient(
@@ -76,98 +74,48 @@
               autoRefreshToken: true,
               persistSession: true,
               detectSessionInUrl: true,
-              flowType: 'pkce',
-              storage: window.localStorage,
-              storageKey: 'supabase.auth.token'
+              flowType: 'pkce'
             }
           }
         );
 
-        // Check for code in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const error = urlParams.get('error');
-        const errorDescription = urlParams.get('error_description');
+        // Listen for auth state changes
+        supabase.auth.onAuthStateChange((event, session) => {
+          console.log('Auth state changed:', { event, email: session?.user?.email });
+          
+          if (event === 'SIGNED_IN' && session?.user) {
+            console.log('User signed in:', {
+              id: session.user.id,
+              email: session.user.email,
+              metadata: session.user.user_metadata
+            });
 
-        if (error || errorDescription) {
-          throw new Error(errorDescription || error || 'OAuth error');
-        }
-
-        if (!code) {
-          throw new Error('No authorization code found in URL');
-        }
-
-        console.log('Authorization code found:', code);
-
-        // Exchange code for session
-        console.log('Exchanging code for session...');
-        const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
-
-        if (sessionError) {
-          console.error('Session exchange error:', sessionError);
-          throw sessionError;
-        }
-
-        if (!data?.session) {
-          throw new Error('No session returned from code exchange');
-        }
-
-        console.log('Session obtained:', {
-          user: data.session.user.email,
-          expires: new Date(data.session.expires_at).toISOString()
+            // Send success message to opener
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'oauth-success',
+                email: session.user.email,
+                name: session.user.user_metadata?.full_name || session.user.email
+              }, 'https://zendegen.app');
+              
+              // Close popup after a brief delay
+              setTimeout(() => window.close(), 500);
+            }
+          }
         });
 
-        // Get user info to verify session
-        console.log('Verifying session...');
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-        if (userError) {
-          throw userError;
-        }
-
-        if (!user) {
-          throw new Error('No user found after session exchange');
-        }
-
-        console.log('User verified:', {
-          id: user.id,
-          email: user.email,
-          metadata: user.user_metadata
-        });
-
-        // Send success message to opener
-        if (window.opener) {
-          console.log('Sending success message to opener');
-          // Force non-www URL for message origin
-          const messageOrigin = window.location.origin.replace('www.', '');
-          console.log('Sending success message to:', messageOrigin);
-          
-          window.opener.postMessage({
-            type: 'oauth-success',
-            email: user.email,
-            name: user.user_metadata?.full_name || user.email
-          }, messageOrigin);
-          
-          // Clean up and close
-          console.log('Closing popup...');
-          setTimeout(() => window.close(), 500);
-        } else {
-          throw new Error('No opener window found');
-        }
+        // Let Supabase handle the session
+        console.log('Waiting for session...');
         
       } catch (error) {
         console.error('OAuth callback error:', error);
         
         // Try to notify opener of error
         if (window.opener) {
-          // Force non-www URL for message origin
-          const messageOrigin = window.location.origin.replace('www.', '');
-          console.log('Sending error message to:', messageOrigin);
-          
           window.opener.postMessage({ 
             type: 'oauth-error', 
             error: error.message 
-          }, messageOrigin);
+          }, 'https://zendegen.app');
         }
         
         // Show error and close

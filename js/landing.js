@@ -150,19 +150,14 @@ async function connectWithGmail() {
     const state = Math.random().toString(36).substring(7);
     localStorage.setItem('oauth_state', state);
 
-    // Force non-www URL
-    const redirectUrl = window.location.origin.replace('www.', '') + '/oauth-callback.html';
-    console.log('Using redirect URL:', redirectUrl);
-
+    // Let Supabase handle the redirect
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUrl,
-        skipBrowserRedirect: true,
+        redirectTo: 'https://zendegen.app/oauth-callback.html',
         queryParams: {
           access_type: 'offline',
-          prompt: 'select_account',
-          state: state
+          prompt: 'select_account'
         }
       }
     });
