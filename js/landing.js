@@ -146,14 +146,19 @@ async function connectWithGmail() {
     
     // Use Supabase's Google provider
     console.log('Calling Supabase signInWithOAuth...');
+    // Generate state for CSRF protection
+    const state = Math.random().toString(36).substring(7);
+    localStorage.setItem('oauth_state', state);
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://qedzitbrwwrxatmpfsvy.supabase.co/auth/v1/callback',
+        redirectTo: `${window.location.origin}/oauth-callback.html`,
         skipBrowserRedirect: true,
         queryParams: {
           access_type: 'offline',
-          prompt: 'select_account'
+          prompt: 'select_account',
+          state: state
         }
       }
     });

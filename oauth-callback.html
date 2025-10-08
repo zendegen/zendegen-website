@@ -64,8 +64,6 @@
       try {
         console.log('OAuth callback starting...');
         console.log('URL:', window.location.href);
-        console.log('Hash:', window.location.hash);
-        console.log('Search:', window.location.search);
 
         // Initialize Supabase client
         const supabase = window.supabase.createClient(
@@ -81,8 +79,19 @@
           }
         );
 
-        // Let Supabase handle the OAuth callback
-        console.log('Exchanging OAuth code...');
+        // Check state parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const state = urlParams.get('state');
+        const storedState = localStorage.getItem('oauth_state');
+        
+        console.log('State check:', { state, storedState });
+        
+        if (state !== storedState) {
+          throw new Error('Invalid OAuth state');
+        }
+
+        // Exchange code for session
+        console.log('Exchanging code for session...');
         const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
 
         if (error) {
@@ -94,33 +103,18 @@
         }
 
         console.log('Session obtained successfully');
-
-        // Get user info
-        console.log('Getting user info...');
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-          throw userError;
-        }
-
-        if (!user) {
-          throw new Error('No user found');
-        }
-
-        console.log('Auth successful:', {
-          email: user.email,
-          name: user.user_metadata?.full_name || user.email
-        });
+        console.log('User:', data.session.user.email);
 
         // Send success message to opener
         if (window.opener) {
           window.opener.postMessage({
             type: 'oauth-success',
-            email: user.email,
-            name: user.user_metadata?.full_name || user.email
+            email: data.session.user.email,
+            name: data.session.user.user_metadata?.full_name || data.session.user.email
           }, window.location.origin);
           
           // Clean up and close
+          localStorage.removeItem('oauth_state');
           setTimeout(() => window.close(), 500);
         } else {
           throw new Error('No opener window found');
