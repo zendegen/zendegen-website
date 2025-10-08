@@ -137,57 +137,62 @@ function showNextSteps() {
 
 async function connectWithGmail() {
   try {
-    console.log('Starting Gmail OAuth for waitlist...');
+    console.log('Starting Gmail OAuth via Supabase...');
+    console.log('Current origin:', window.location.origin);
+    
     signupMethod = 'gmail';
     localStorage.setItem('waitlist_signup_method', 'gmail');
-    
-    // Mark that we're expecting a popup auth (so popup knows to communicate back)
     localStorage.setItem('waitlist_popup_auth', 'true');
     
-    // Build the OAuth URL manually
-    const supabaseUrl = 'https://wouziwxgidiuygrxxago.supabase.co';
+    // Use Supabase's Google provider
+    console.log('Calling Supabase signInWithOAuth...');
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/oauth-callback.html`,
+        skipBrowserRedirect: true,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'select_account'
+        }
+      }
+    });
     
-    // Use oauth-callback.html as redirect target
-    const redirectTo = `${window.location.origin}/oauth-callback.html`;
+    console.log('Supabase OAuth response:', { data, error });
     
-    // Log the redirect URL so user can add it to Supabase settings
-    console.log('====================================');
-    console.log('📋 ADD THIS URL TO SUPABASE:');
-    console.log(redirectTo);
-    console.log('Go to: Supabase → Authentication → URL Configuration → Redirect URLs');
-    console.log('====================================');
+    if (error) {
+      console.error('Supabase OAuth error:', error);
+      throw error;
+    }
     
-    // Construct Supabase OAuth URL
-    const oauthUrl = `${supabaseUrl}/auth/v1/authorize?` + 
-      `provider=google` +
-      `&redirect_to=${encodeURIComponent(redirectTo)}` +
-      `&access_type=offline` +
-      `&prompt=select_account`;
+    if (!data?.url) {
+      console.error('No OAuth URL received from Supabase');
+      throw new Error('No OAuth URL received from Supabase');
+    }
     
-    console.log('Opening OAuth popup:', oauthUrl);
+    console.log('Received OAuth URL:', data.url);
     
-    // Open OAuth in a centered popup window
+    // Open the auth URL in a centered popup
     const width = 500;
     const height = 600;
     const left = Math.round((screen.width - width) / 2);
     const top = Math.round((screen.height - height) / 2);
     
     const popup = window.open(
-      oauthUrl,
+      data.url,
       'google-oauth-waitlist',
       `width=${width},height=${height},left=${left},top=${top},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
     );
     
     if (!popup) {
-      alert('Popup was blocked. Please allow popups for this site and try again.');
-      localStorage.removeItem('waitlist_popup_auth');
-      return;
+      console.error('Popup was blocked');
+      throw new Error('Popup was blocked. Please allow popups for this site.');
     }
     
+    console.log('Gmail OAuth popup opened via Supabase...');
   } catch (error) {
-    console.error('Error connecting with Gmail:', error);
-    alert('An error occurred. Please try again.');
-    localStorage.removeItem('waitlist_popup_auth');
+    console.error('Failed to connect with Gmail:', error);
+    alert(`Failed to connect with Gmail: ${error.message}\n\nPlease check console for details.`);
   }
 }
 
