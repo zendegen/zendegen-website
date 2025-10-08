@@ -440,10 +440,14 @@ function showSuccessMessage(email, alreadyJoined = false) {
 
 async function joinWaitlist() {
   try {
+    console.log('Join waitlist button clicked');
+    
     // Get stored user info from OAuth
     const email = localStorage.getItem('waitlist_user_email');
     const name = localStorage.getItem('waitlist_user_name');
     const method = localStorage.getItem('waitlist_signup_method') || 'gmail';
+    
+    console.log('User info:', { email, name, method });
     
     if (!email) {
       alert('Please connect with Gmail or X first.');
@@ -460,8 +464,11 @@ async function joinWaitlist() {
     // Get updates preference
     const wantsUpdates = document.getElementById('updates').checked;
     
+    console.log('Calling addToWaitlist...');
     // Add to waitlist
     await addToWaitlist(email, name, method, wantsUpdates);
+    
+    console.log('addToWaitlist completed successfully');
     
     // Clean up
     localStorage.removeItem('waitlist_user_email');
@@ -470,6 +477,7 @@ async function joinWaitlist() {
     localStorage.removeItem('waitlist_wants_updates');
     localStorage.removeItem('waitlist_popup_auth');
     
+    console.log('Showing success message...');
     // Show success message
     showSuccessMessage(email);
     
