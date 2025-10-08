@@ -164,19 +164,16 @@ async function connectWithGmail() {
     });
 
     if (data?.url) {
-      // Manually redirect to non-www URL
-      const authUrl = new URL(data.url);
-      const params = new URLSearchParams(authUrl.search);
-      params.set('redirect_to', 'https://zendegen.app/oauth-callback.html');
-      
       // Open OAuth in a centered popup window
       const width = 500;
       const height = 600;
       const left = Math.round((screen.width - width) / 2);
       const top = Math.round((screen.height - height) / 2);
       
+      console.log('Opening popup with URL:', data.url);
+      
       const popup = window.open(
-        `${authUrl.origin}${authUrl.pathname}?${params.toString()}`,
+        data.url,
         'google-oauth-waitlist',
         `width=${width},height=${height},left=${left},top=${top},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
       );
@@ -286,8 +283,14 @@ async function connectWithX() {
 
 function setupPopupMessageListener() {
   window.addEventListener('message', async (event) => {
-    // Only accept messages from our own origin
-    if (event.origin !== window.location.origin) return;
+    console.log('Received message:', event.origin, event.data);
+    
+    // Accept messages from both www and non-www
+    const validOrigins = ['https://zendegen.app', 'https://www.zendegen.app'];
+    if (!validOrigins.includes(event.origin)) {
+      console.log('Rejected message from invalid origin:', event.origin);
+      return;
+    }
     
     if (event.data && event.data.type === 'oauth-success') {
       console.log('Received OAuth success message from popup');
@@ -300,6 +303,9 @@ function setupPopupMessageListener() {
       
       // Show next steps (follow buttons, checkboxes, join button)
       showNextSteps();
+    } else if (event.data && event.data.type === 'oauth-error') {
+      console.error('Received OAuth error from popup:', event.data.error);
+      alert(`Authentication failed: ${event.data.error}`);
     }
   });
 }
