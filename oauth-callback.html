@@ -65,6 +65,14 @@
         console.log('OAuth callback starting...');
         console.log('URL:', window.location.href);
 
+        // Check if we need to redirect to non-www
+        if (window.location.hostname.startsWith('www.')) {
+          const nonWwwUrl = window.location.href.replace('www.', '');
+          console.log('Redirecting to non-www URL:', nonWwwUrl);
+          window.location.replace(nonWwwUrl);
+          return;
+        }
+
         // Initialize Supabase client
         const supabase = window.supabase.createClient(
           'https://qedzitbrwwrxatmpfsvy.supabase.co',
@@ -79,33 +87,43 @@
           }
         );
 
-        // Listen for auth state changes
-        supabase.auth.onAuthStateChange((event, session) => {
-          console.log('Auth state changed:', { event, email: session?.user?.email });
-          
-          if (event === 'SIGNED_IN' && session?.user) {
-            console.log('User signed in:', {
-              id: session.user.id,
-              email: session.user.email,
-              metadata: session.user.user_metadata
-            });
+        // Get code from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        
+        if (!code) {
+          throw new Error('No authorization code found');
+        }
 
-            // Send success message to opener
-            if (window.opener) {
-              window.opener.postMessage({
-                type: 'oauth-success',
-                email: session.user.email,
-                name: session.user.user_metadata?.full_name || session.user.email
-              }, 'https://zendegen.app');
-              
-              // Close popup after a brief delay
-              setTimeout(() => window.close(), 500);
-            }
-          }
+        console.log('Exchanging code for session...');
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data?.session?.user) {
+          throw new Error('No user found in session');
+        }
+
+        console.log('Session obtained:', {
+          email: data.session.user.email,
+          expires: new Date(data.session.expires_at).toISOString()
         });
 
-        // Let Supabase handle the session
-        console.log('Waiting for session...');
+        // Send success message to opener
+        if (window.opener) {
+          window.opener.postMessage({
+            type: 'oauth-success',
+            email: data.session.user.email,
+            name: data.session.user.user_metadata?.full_name || data.session.user.email
+          }, 'https://zendegen.app');
+          
+          // Close popup after a brief delay
+          setTimeout(() => window.close(), 500);
+        } else {
+          throw new Error('No opener window found');
+        }
         
       } catch (error) {
         console.error('OAuth callback error:', error);

@@ -155,12 +155,36 @@ async function connectWithGmail() {
       provider: 'google',
       options: {
         redirectTo: 'https://zendegen.app/oauth-callback.html',
+        skipBrowserRedirect: true, // We'll handle the redirect manually
         queryParams: {
           access_type: 'offline',
           prompt: 'select_account'
         }
       }
     });
+
+    if (data?.url) {
+      // Manually redirect to non-www URL
+      const authUrl = new URL(data.url);
+      const params = new URLSearchParams(authUrl.search);
+      params.set('redirect_to', 'https://zendegen.app/oauth-callback.html');
+      
+      // Open OAuth in a centered popup window
+      const width = 500;
+      const height = 600;
+      const left = Math.round((screen.width - width) / 2);
+      const top = Math.round((screen.height - height) / 2);
+      
+      const popup = window.open(
+        `${authUrl.origin}${authUrl.pathname}?${params.toString()}`,
+        'google-oauth-waitlist',
+        `width=${width},height=${height},left=${left},top=${top},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
+      );
+      
+      if (!popup) {
+        throw new Error('Popup was blocked. Please allow popups for this site.');
+      }
+    }
     
     console.log('Supabase OAuth response:', { data, error });
     
