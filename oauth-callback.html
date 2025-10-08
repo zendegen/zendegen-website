@@ -138,11 +138,15 @@
         // Send success message to opener
         if (window.opener) {
           console.log('Sending success message to opener');
+          // Force non-www URL for message origin
+          const messageOrigin = window.location.origin.replace('www.', '');
+          console.log('Sending success message to:', messageOrigin);
+          
           window.opener.postMessage({
             type: 'oauth-success',
             email: user.email,
             name: user.user_metadata?.full_name || user.email
-          }, window.location.origin);
+          }, messageOrigin);
           
           // Clean up and close
           console.log('Closing popup...');
@@ -156,10 +160,14 @@
         
         // Try to notify opener of error
         if (window.opener) {
+          // Force non-www URL for message origin
+          const messageOrigin = window.location.origin.replace('www.', '');
+          console.log('Sending error message to:', messageOrigin);
+          
           window.opener.postMessage({ 
             type: 'oauth-error', 
             error: error.message 
-          }, window.location.origin);
+          }, messageOrigin);
         }
         
         // Show error and close

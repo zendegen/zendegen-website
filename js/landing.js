@@ -150,10 +150,14 @@ async function connectWithGmail() {
     const state = Math.random().toString(36).substring(7);
     localStorage.setItem('oauth_state', state);
 
+    // Force non-www URL
+    const redirectUrl = window.location.origin.replace('www.', '') + '/oauth-callback.html';
+    console.log('Using redirect URL:', redirectUrl);
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/oauth-callback.html`,
+        redirectTo: redirectUrl,
         skipBrowserRedirect: true,
         queryParams: {
           access_type: 'offline',
