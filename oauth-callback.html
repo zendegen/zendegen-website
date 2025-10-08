@@ -90,43 +90,38 @@
               autoRefreshToken: true,
               persistSession: false, // Don't persist session in this popup
               detectSessionInUrl: true,
-              flowType: 'pkce',
+              flowType: 'implicit', // Use implicit flow instead of PKCE
               storage: customStorage
             }
           }
         );
 
-        // Get code from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const error = urlParams.get('error');
-        const errorDescription = urlParams.get('error_description');
+        // With implicit flow, session should be in URL hash
+        console.log('Waiting for session from URL hash...');
         
-        console.log('URL parameters:', { code: code ? 'present' : 'missing', error, errorDescription });
-
-        if (error || errorDescription) {
-          throw new Error(errorDescription || error || 'OAuth error');
-        }
-
-        if (!code) {
-          throw new Error('No authorization code found in URL');
-        }
-
-        // Exchange code for session
-        console.log('Exchanging code for session...');
-        const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(window.location.href);
+        // Let Supabase detectSessionInUrl handle it
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
-          console.error('Session exchange error:', sessionError);
+          console.error('Session error:', sessionError);
           throw sessionError;
         }
 
-        if (!data?.session?.user) {
-          throw new Error('No user found in session');
+        if (!session?.user) {
+          console.log('No session yet, checking URL for errors...');
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          const error = hashParams.get('error');
+          const errorDescription = hashParams.get('error_description');
+          
+          if (error || errorDescription) {
+            throw new Error(errorDescription || error || 'OAuth error');
+          }
+          
+          throw new Error('No session found');
         }
 
         console.log('Session obtained successfully');
-        console.log('User email:', data.session.user.email);
+        console.log('User email:', session.user.email);
 
         // Determine correct origin for message
         const targetOrigin = window.location.hostname.includes('www.') 
@@ -138,8 +133,8 @@
           console.log('Sending success message to:', targetOrigin);
           window.opener.postMessage({
             type: 'oauth-success',
-            email: data.session.user.email,
-            name: data.session.user.user_metadata?.full_name || data.session.user.email
+            email: session.user.email,
+            name: session.user.user_metadata?.full_name || session.user.email
           }, targetOrigin);
           
           // Close popup after a brief delay

@@ -25,7 +25,7 @@ export const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKe
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce',
+    flowType: 'implicit', // Use implicit flow instead of PKCE to avoid cross-window verifier issues
     storage: customStorage,
     storageKey: 'supabase.auth.token'
   }
