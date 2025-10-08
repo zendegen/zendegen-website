@@ -50,6 +50,7 @@
       color: rgba(255, 255, 255, 0.7);
     }
   </style>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div class="auth-container">
@@ -61,81 +62,58 @@
   <script>
     (async function() {
       try {
-        // Check for Twitter OAuth code
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const state = urlParams.get('state');
-        const storedState = localStorage.getItem('twitter_oauth_state');
-        
-        if (code && state === storedState) {
-          console.log('Twitter OAuth callback received');
-          
-          try {
-            console.log('Received code:', code);
-            
-            // Exchange code for tokens
-            const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': 'Basic ' + btoa('aWw2SjBCd0JDTjhjbU1XeHBZSW86MTpjaQ:Y0HzJr780sK_HgJhaJcxTL_ovJlg4gGM09VXUFkwvyoNwd-ijC')
-              },
-              body: new URLSearchParams({
-                'grant_type': 'authorization_code',
-                'code': code,
-                'redirect_uri': 'https://zendegen.app/oauth-callback.html',
-                'code_verifier': 'challenge'
-              })
-            });
-            
-            // Log token response status
-            console.log('Token response status:', tokenResponse.status);
-            const tokens = await tokenResponse.json();
-            console.log('Token response:', tokens);
-            
-            if (!tokens.access_token) {
-              throw new Error(`No access token received: ${JSON.stringify(tokens)}`);
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(
+          'https://qedzitbrwwrxatmpfsvy.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZHppdGJyd3dyeGF0bXBmc3Z5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4ODIyMjEsImV4cCI6MjA3NTQ1ODIyMX0.TSERAKByXVw-up-BXifO6ukMWtJclInoS3LgRm5ZeD8',
+          {
+            auth: {
+              autoRefreshToken: true,
+              persistSession: true,
+              detectSessionInUrl: true
             }
-            
-            // Get user info
-            console.log('Getting user info with token:', tokens.access_token.substring(0, 10) + '...');
-            const userResponse = await fetch('https://api.twitter.com/2/users/me', {
-              headers: {
-                'Authorization': `Bearer ${tokens.access_token}`
-              }
-            });
-            
-            // Log user response status
-            console.log('User response status:', userResponse.status);
-            const userData = await userResponse.json();
-            console.log('User response:', userData);
-            
-            if (!userData.data?.username) {
-              throw new Error(`Failed to get Twitter username: ${JSON.stringify(userData)}`);
-            }
-            
-            // Send success message to opener
-            if (window.opener) {
-              window.opener.postMessage({
-                type: 'oauth-success',
-                email: `${userData.data.username}@twitter.com`,
-                name: userData.data.name || userData.data.username
-              }, window.location.origin);
-              
-              // Clean up and close
-              localStorage.removeItem('twitter_oauth_state');
-              setTimeout(() => window.close(), 500);
-            } else {
-              throw new Error('No opener window found');
-            }
-            
-          } catch (error) {
-            console.error('Twitter API error:', error);
-            throw new Error('Failed to get Twitter user info');
           }
+        );
+
+        // Get session from URL
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          throw sessionError;
+        }
+
+        if (!session?.user) {
+          throw new Error('No session found');
+        }
+
+        // Get user info
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          throw userError;
+        }
+
+        if (!user) {
+          throw new Error('No user found');
+        }
+
+        console.log('Auth successful:', {
+          email: user.email,
+          name: user.user_metadata?.full_name || user.email
+        });
+
+        // Send success message to opener
+        if (window.opener) {
+          window.opener.postMessage({
+            type: 'oauth-success',
+            email: user.email,
+            name: user.user_metadata?.full_name || user.email
+          }, window.location.origin);
           
+          // Clean up and close
+          setTimeout(() => window.close(), 500);
         } else {
-          throw new Error('Invalid OAuth state or missing code');
+          throw new Error('No opener window found');
         }
         
       } catch (error) {
