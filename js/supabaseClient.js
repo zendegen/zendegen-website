@@ -2,6 +2,23 @@
 const supabaseUrl = 'https://qedzitbrwwrxatmpfsvy.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZHppdGJyd3dyeGF0bXBmc3Z5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4ODIyMjEsImV4cCI6MjA3NTQ1ODIyMX0.TSERAKByXVw-up-BXifO6ukMWtJclInoS3LgRm5ZeD8';
 
+// Create a custom storage adapter that uses both localStorage and sessionStorage
+const customStorage = {
+  getItem: (key) => {
+    // Try sessionStorage first (for PKCE verifier), then localStorage
+    return window.sessionStorage.getItem(key) || window.localStorage.getItem(key);
+  },
+  setItem: (key, value) => {
+    // Store in both to ensure accessibility
+    window.sessionStorage.setItem(key, value);
+    window.localStorage.setItem(key, value);
+  },
+  removeItem: (key) => {
+    window.sessionStorage.removeItem(key);
+    window.localStorage.removeItem(key);
+  }
+};
+
 // Create and export the Supabase client
 export const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -9,7 +26,7 @@ export const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKe
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
-    storage: window.localStorage,
+    storage: customStorage,
     storageKey: 'supabase.auth.token'
   }
 });

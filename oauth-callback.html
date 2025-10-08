@@ -65,6 +65,21 @@
         console.log('OAuth callback starting...');
         console.log('Full URL:', window.location.href);
 
+        // Create custom storage adapter
+        const customStorage = {
+          getItem: (key) => {
+            return window.sessionStorage.getItem(key) || window.localStorage.getItem(key) || window.opener?.sessionStorage?.getItem(key) || window.opener?.localStorage?.getItem(key);
+          },
+          setItem: (key, value) => {
+            window.sessionStorage.setItem(key, value);
+            window.localStorage.setItem(key, value);
+          },
+          removeItem: (key) => {
+            window.sessionStorage.removeItem(key);
+            window.localStorage.removeItem(key);
+          }
+        };
+
         // Initialize Supabase client
         console.log('Initializing Supabase client...');
         const supabase = window.supabase.createClient(
@@ -75,7 +90,8 @@
               autoRefreshToken: true,
               persistSession: false, // Don't persist session in this popup
               detectSessionInUrl: true,
-              flowType: 'pkce'
+              flowType: 'pkce',
+              storage: customStorage
             }
           }
         );
