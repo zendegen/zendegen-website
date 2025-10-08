@@ -287,13 +287,10 @@ async function connectWithX() {
 
 function setupPopupMessageListener() {
   window.addEventListener('message', async (event) => {
-    console.log('Received message:', event.origin, event.data);
-    
     // Accept messages from both www and non-www
     const validOrigins = ['https://zendegen.app', 'https://www.zendegen.app'];
     if (!validOrigins.includes(event.origin)) {
-      console.log('Rejected message from invalid origin:', event.origin);
-      return;
+      return; // Silently ignore messages from other origins (e.g., browser extensions)
     }
     
     if (event.data && event.data.type === 'oauth-success') {
