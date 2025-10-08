@@ -183,7 +183,7 @@ async function connectWithGmail() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin, // Redirect back to the main page
+        redirectTo: 'https://zendegen.app', // Use non-www URL consistently
         queryParams: {
           access_type: 'offline',
           prompt: 'select_account'
@@ -243,7 +243,7 @@ async function connectWithX() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
       options: {
-        redirectTo: window.location.origin, // Redirect back to the main page
+        redirectTo: 'https://zendegen.app', // Use non-www URL consistently
         scopes: 'users.read'
       }
     });
