@@ -369,7 +369,8 @@ async function addToWaitlist(email, name, source, wantsUpdates) {
   try {
     console.log('Adding to waitlist:', { email, name, source, wantsUpdates });
     
-    const { data, error } = await supabase
+    // Add timeout to the insert
+    const insertPromise = supabase
       .from('waitlist')
       .insert([
         {
@@ -379,7 +380,13 @@ async function addToWaitlist(email, name, source, wantsUpdates) {
           wants_updates: wantsUpdates
         }
       ])
-      .select(); // Add select to return the inserted data
+      .select();
+    
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Insert timeout after 10 seconds')), 10000)
+    );
+    
+    const { data, error } = await Promise.race([insertPromise, timeoutPromise]);
     
     console.log('Insert result:', { data, error });
     
